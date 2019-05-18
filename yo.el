@@ -21,9 +21,6 @@
 (defvar yo-database-file "./yo.t"
   "Where your yo database lives")
 
-(defvar yo-database-codingsystem 'windows-1251-unix
-  "Coding system of `yo-database-file'")
-
 (defvar yo-cutting-strings (list "\\-" "\"=" "\"~")
   "Words in the text may be split by some strings:
 for example: hy\\-phe\\-na\\-ti\\-on in TeX")
@@ -34,7 +31,7 @@ for example: hy\\-phe\\-na\\-ti\\-on in TeX")
     (replace-regexp-in-string regexp newtext str))
   (defun region-active-p () nil))
 
-(defun read-yo-database (file-name &optional encoding)
+(defun read-yo-database (file-name)
   "Reading yo database from FILENAME and return cons:
 \(only-yo-hash . may-be-yo-hash) where hash mapping word whithout yo
 to corresponding yo-form"
@@ -42,8 +39,7 @@ to corresponding yo-form"
 	(may-be-yo (make-hash-table :test 'equal :size 2000))
 	current-word)
       (switch-to-buffer (generate-new-buffer "yo"))
-      (let ((coding-system-for-read encoding))
-	(insert-file-contents file-name))
+      (insert-file-contents file-name)
     (while (re-search-forward "^\\w+" nil t)
       (setq current-word (match-string 0))
       (puthash (replace-in-string current-word "ё" "е")
@@ -58,7 +54,7 @@ to corresponding yo-form"
     ))
 
 (defvar yo-hash
-  (read-yo-database yo-database-file yo-database-codingsystem)
+  (read-yo-database yo-database-file)
   "cons (only-yo-hash . may-be-yo-hash) where hash mapping word
 whithout yo to corresponding yo-form")
 
