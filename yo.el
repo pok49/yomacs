@@ -51,32 +51,44 @@ to corresponding yo-form"
   "cons (only-yo-hash . may-be-yo-hash) where hash mapping word
 whithout yo to corresponding yo-form")
 
-(defun yo-context () "О чём, о нём, обо всём, всё это"
-  (interactive)
+(defun yo-context (strict) "О чём, о нём, обо всём, всё это"
+  (interactive "P")
   (let ((case-fold-search t))
     (save-restriction
       (save-excursion
         (when mark-active
           (narrow-to-region (region-beginning) (region-end))
           (goto-char (point-min)))
+
         (while (re-search-forward
                 "\\<\\(об?\\|обо\\|на\\|во?\\|при\\) \\([чн]\\|вс\\)ем\\>"
                 nil t)
-          (replace-match "\\1 \\2ём" nil))
-        (goto-char (point-min))
-        (while (re-search-forward "\\<\\([Нн]\\)е \\(в\\|о\\) чём\\>" nil t)
-          (replace-match "\\1е \\2 чем" nil))
+          (unless
+              (save-match-data
+                (left-word 3) ; не в чем себя упрекнуть
+                (prog1 (looking-at "не[[:space:]]+\\(в\\|об?\\|на\\) чем\\>")
+                  (right-word 3)))
+              (replace-match "\\1 \\2ём" nil)))
+
         (goto-char (point-min))
         (while (re-search-forward "\\<\\(по [чн]\\)ем\\>" nil t)
           (replace-match "\\1ём" nil))
-        (goto-char (point-min))
-        (while (re-search-forward "\\<\\(за\\|про\\) \\(вс\\)е\\([[:punct:]]\\)" nil t)
-          (replace-match "\\1 \\2ё\\3" nil))
-        (goto-char (point-min))
-        (while (re-search-forward
- "\\<\\(вс\\)е\\(,? что\\| это\\| время\\| больше\\| более\\| меньше\\| менее\\| равно\\| было\\| \\w+ство\\|-таки\\)\\>"
+
+        (unless strict
+          (goto-char (point-min))
+          (while (re-search-forward
+ "\\<\\(вс\\)е\\(,? что\\| э?то\\| время\\| больше\\| более\\| меньше\\| менее\\| равно\\| было\\| \\w+ство\\|-таки\\)\\>"
                 nil t)
-          (replace-match "\\1ё\\2" nil))
+            (replace-match "\\1ё\\2" nil)))
+
+        (goto-char (point-min))
+        (while (re-search-forward "\\(\\w+лось\\) \\(вс\\)е\\>"  nil t)
+          (replace-match "\\1 \\2ё" nil))
+
+        (goto-char (point-min))
+        (while (re-search-forward "\\<\\(вс\\)е \\(\\w+лось\\)\\>"  nil t)
+          (replace-match "\\1ё \\2" nil))
+
 ))))
 
 (defun yo-spell ()
@@ -143,14 +155,21 @@ DEL, Backspace, n или N замену отменяют.
       (let ((e-word (replace-regexp-in-string "ё" "е" (match-string 2 word))))
         (if (string-match "^\\+" word)
             (puthash e-word (gethash e-word (cdr yo-hash)) (car yo-hash)))
-        (remhash (match-string 2 word) (cdr yo-hash)))
+        (remhash e-word (cdr yo-hash)))
     (unless (string-match "^#" word)
       (error "Wrong dict entry"))))
 
 (defun yo-rm-many (filePath) "Remove many words from the may-be-yo hash"
   (interactive "fFile: ")
-;  (unless (file-exists-p file) (error "%s does not exist" file)
-  (let ((lst (with-temp-buffer
+;   (unless (file-exists-p file)
+;     (error "%s does not exist" file)
+;     (save-excursion
+;     
+;       (find-file filePath)
+;       (read-line)
+; 
+  (let* ((coding-system-for-read 'windows-1251-unix)
+         (lst (with-temp-buffer
                (insert-file-contents filePath)
                (split-string (buffer-string) "\n" t))))
     (dolist (x lst) (yo-rm-entry x))))
