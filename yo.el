@@ -1,22 +1,12 @@
-;; -*- mode: emacs-lisp; coding: utf-8 -*-
+;; -*- mode: emacs-lisp; coding: windows-1251-unix -*-
 ;; (c) Eugene Minkovskii; yo.el; Sat Oct 04 15:53:07 2003
-;; <emin@mccme.ru>
-;;; http://python.anabar.ru/yo.htm
-
-; РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ
-;
-; Р’ XEmacs РІС‹РїРѕР»РЅРёС‚Рµ РєРѕРјР°РЅРґСѓ
-; M-x load-file <RET> yo.elc
-;     РџСЂРёРјРµС‡Р°РЅРёРµ: РќРµ СЃС‚Р°РІСЊС‚Рµ СЌС‚Сѓ РєРѕРјР°РЅРґСѓ РІ .emacs,
-;     С‚Р°Рє РєР°Рє РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ СЃРєСЂРёРїС‚Р° РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ РґРѕР»РіРѕ (Р·Р°С‚Рѕ СЂР°Р±РѕС‚Р°РµС‚ РѕРЅ Р±С‹СЃС‚СЂРѕ).
-;     РћС‚РєСЂРѕР№С‚Рµ С‘-С„РёС†РёСЂСѓРµРјС‹Р№ С„Р°Р№Р» Рё РІС‹РїРѕР»РЅРёС‚Рµ РєРѕРјР°РЅРґСѓ
-; M-x yo-spell
-; ----
-; РЎ.Рџ.: РЎРЅР°С‡Р°Р»Р° РїРѕР»РµР·РЅРѕ СЃРґРµР»Р°С‚СЊ
-; M-x yo-context
+;; <emin@mccme.ru> http://python.anabar.ru/yo.htm
+;; (C) Sergio Pokrovskij 2019-05-25
+;; GNU General Public License v. 3.0
+;; https://www.gnu.org/licenses/gpl-3.0.en.html
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Р—РґРµСЃСЊ РЅР°РґРѕ СѓРєР°Р·Р°С‚СЊ РѕС‚РєСѓРґР° С‡РёС‚Р°РµС‚СЃСЏ Р±Р°Р·Р° ;;
+;; Здесь надо указать откуда читается база ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defvar yo-database-file "~/git/yomacs/yo.t" ; <== FIXME !
   "Where your yo.t database lives")
@@ -36,12 +26,12 @@ to corresponding yo-form"
       (insert-file-contents file-name)
     (while (re-search-forward "^\\w+" nil t)
       (setq current-word (match-string 0))
-      (puthash (replace-regexp-in-string "С‘" "Рµ" current-word)
+      (puthash (replace-regexp-in-string "ё" "е" current-word)
 	       current-word only-yo))
     (goto-char (point-min))
     (while (re-search-forward "^\\*[ \t]*\\(\\w+\\)" nil t)
       (setq current-word (match-string 1))
-      (puthash (replace-regexp-in-string "С‘" "Рµ" current-word)
+      (puthash (replace-regexp-in-string "ё" "е" current-word)
 	       current-word may-be-yo))
     (kill-buffer (current-buffer))
     (cons only-yo may-be-yo)))
@@ -51,7 +41,7 @@ to corresponding yo-form"
   "cons (only-yo-hash . may-be-yo-hash) where hash mapping word
 whithout yo to corresponding yo-form")
 
-(defun yo-context (strict) "Рћ С‡С‘Рј, Рѕ РЅС‘Рј, РѕР±Рѕ РІСЃС‘Рј, РІСЃС‘ СЌС‚Рѕ"
+(defun yo-context (strict) "О чём, о нём, обо всём, всё это"
   (interactive "P")
   (let ((case-fold-search t))
     (save-restriction
@@ -61,42 +51,42 @@ whithout yo to corresponding yo-form")
           (goto-char (point-min)))
 
         (while (re-search-forward
-                "\\<\\(РѕР±?\\|РѕР±Рѕ\\|РЅР°\\|РІРѕ?\\|РїСЂРё\\) \\([С‡РЅ]\\|РІСЃ\\)РµРј\\>"
+                "\\<\\(об?\\|обо\\|на\\|во?\\|при\\) \\([чн]\\|вс\\)ем\\>"
                 nil t)
           (unless
               (save-match-data
-                (left-word 3) ; РЅРµ РІ С‡РµРј СЃРµР±СЏ СѓРїСЂРµРєРЅСѓС‚СЊ
-                (prog1 (looking-at "РЅРµ[[:space:]]+\\(РІ\\|РѕР±?\\|РЅР°\\) С‡РµРј\\>")
+                (left-word 3) ; не в чем себя упрекнуть
+                (prog1 (looking-at "не[[:space:]]+\\(в\\|об?\\|на\\) чем\\>")
                   (right-word 3)))
-              (replace-match "\\1 \\2С‘Рј" nil)))
+              (replace-match "\\1 \\2ём" nil)))
 
         (goto-char (point-min))
-        (while (re-search-forward "\\<\\(РїРѕ [С‡РЅ]\\)РµРј\\>" nil t)
-          (replace-match "\\1С‘Рј" nil))
+        (while (re-search-forward "\\<\\(по [чн]\\)ем\\>" nil t)
+          (replace-match "\\1ём" nil))
 
         (unless strict
           (goto-char (point-min))
           (while (re-search-forward
- "\\<\\(РІСЃ\\)Рµ\\(,? С‡С‚Рѕ\\| СЌ?С‚Рѕ\\| РІСЂРµРјСЏ\\| Р±РѕР»СЊС€Рµ\\| Р±РѕР»РµРµ\\| РјРµРЅСЊС€Рµ\\| РјРµРЅРµРµ\\| СЂР°РІРЅРѕ\\| Р±С‹Р»Рѕ\\| \\w+СЃС‚РІРѕ\\|-С‚Р°РєРё\\)\\>"
+ "\\<\\(вс\\)е\\(,? что\\| э?то\\| время\\| больше\\| более\\| меньше\\| менее\\| равно\\| было\\| \\w+ство\\|-таки\\)\\>"
                 nil t)
-            (replace-match "\\1С‘\\2" nil)))
+            (replace-match "\\1ё\\2" nil)))
 
         (goto-char (point-min))
-        (while (re-search-forward "\\(\\w+Р»РѕСЃСЊ\\) \\(РІСЃ\\)Рµ\\>"  nil t)
-          (replace-match "\\1 \\2С‘" nil))
+        (while (re-search-forward "\\(\\w+лось\\) \\(вс\\)е\\>"  nil t)
+          (replace-match "\\1 \\2ё" nil))
 
         (goto-char (point-min))
-        (while (re-search-forward "\\<\\(РІСЃ\\)Рµ \\(\\w+Р»РѕСЃСЊ\\)\\>"  nil t)
-          (replace-match "\\1С‘ \\2" nil))
+        (while (re-search-forward "\\<\\(вс\\)е \\(\\w+лось\\)\\>"  nil t)
+          (replace-match "\\1ё \\2" nil))
 
 ))))
 
 (defun yo-spell ()
-  "РЎР»РѕРІР°СЂРЅР°СЏ С‘С„РёРєР°С†РёСЏ СЃ РґРёР°Р»РѕРіРѕРІРѕР№ Р·Р°РјРµРЅРѕР№ РїСЂРѕР±Р»РµРјРЅС‹С… СЃР»РѕРІ (С‚РёРїР° {СЃРµР»|СЃС‘Р»}).
-РџСЂРѕР±РµР» РёР»Рё Р°РЅРіР»РёР№СЃРєРёРµ y, Y РїРѕРґС‚РІРµСЂР¶РґР°СЋС‚ Р·Р°РјРµРЅСѓ.
-DEL, Backspace, n РёР»Рё N Р·Р°РјРµРЅСѓ РѕС‚РјРµРЅСЏСЋС‚.
-РљСЂРѕРјРµ С‚РѕРіРѕ, РїСЂРё РѕС‚РІРµС‚Рµ Р·Р°РіР»Р°РІРЅРѕР№ Р±СѓРєРІРѕР№ (Y РёР»Рё N) РІС…РѕРґРёРј
-РІ СЂРµРєСѓСЂСЃРёРІРЅРѕРµ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ"
+  "Словарная ёфикация с диалоговой заменой проблемных слов (типа {сел|сёл}).
+Пробел или английские y, Y подтверждают замену.
+DEL, Backspace, n или N замену отменяют.
+Кроме того, при ответе заглавной буквой (Y или N) входим
+в рекурсивное редактирование"
   (interactive)
   (save-restriction
     (save-excursion
@@ -112,7 +102,7 @@ DEL, Backspace, n РёР»Рё N Р·Р°РјРµРЅСѓ РѕС‚РјРµРЅСЏСЋС‚.
 	  (goto-char (point-min)))
 	(while (re-search-forward
 		(concat "\\(?:\\w\\(?:\\w\\|" cutting "\\)*\\)?"
-			"\\(?:Рµ\\|Р•\\)"
+			"\\(?:е\\|Е\\)"
 			"\\(?:\\w\\(?:\\w\\|" cutting "\\)*\\)?") nil t)
 	  (save-match-data
  	    (setq current-e-word
@@ -127,7 +117,7 @@ DEL, Backspace, n РёР»Рё N Р·Р°РјРµРЅСѓ РѕС‚РјРµРЅСЏСЋС‚.
                   (progn
                       (setq x (read-char-exclusive
                               (format
-                               "РњРµРЅСЏРµРј \"%s\" РЅР° \"%s\"? (Р”Р°={SPC|y}, РќРµС‚={DEL|n}) "
+                               "Меняем \"%s\" на \"%s\"? (Да={SPC|y}, Нет={DEL|n}) "
                                current-e-word current-yo-word)))
                     (cond
                      ((or (= x ? ) (= x ?y) (= x ?Y))
@@ -146,13 +136,13 @@ DEL, Backspace, n РёР»Рё N Р·Р°РјРµРЅСѓ РѕС‚РјРµРЅСЏСЋС‚.
                 (save-window-excursion (save-excursion (recursive-edit)))))))))))
 
 ;; These are test strings
-;; Р’СЃ\-Рµ РµРµ Р’СЃРµ  Р›Р•РЎРЎ
-;; (gethash "РІСЃРµ" (cdr yo-hash))
+;; Вс\-е ее Все  ЛЕСС
+;; (gethash "все" (cdr yo-hash))
 
 (defun yo-rm-entry (word) "Remove word from the may-be-yo hash"
-  (interactive "sРРіРЅРѕСЂРёСЂРѕРІР°С‚СЊ СЃР»РѕРІРѕ: ")
+  (interactive "sИгнорировать слово: ")
   (if (string-match "\\([*+]\\)?[ \t]*\\(\\w+\\)$" word)
-      (let ((e-word (replace-regexp-in-string "С‘" "Рµ" (match-string 2 word))))
+      (let ((e-word (replace-regexp-in-string "ё" "е" (match-string 2 word))))
         (if (string-match "^\\+" word)
             (puthash e-word (gethash e-word (cdr yo-hash)) (car yo-hash)))
         (remhash e-word (cdr yo-hash)))
@@ -168,7 +158,7 @@ DEL, Backspace, n РёР»Рё N Р·Р°РјРµРЅСѓ РѕС‚РјРµРЅСЏСЋС‚.
 ;       (find-file filePath)
 ;       (read-line)
 ; 
-  (let* ((coding-system-for-read 'windows-1251-unix)
+  (let* ( ; (coding-system-for-read 'windows-1251-unix)
          (lst (with-temp-buffer
                (insert-file-contents filePath)
                (split-string (buffer-string) "\n" t))))
