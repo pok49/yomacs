@@ -12,11 +12,11 @@ main assets of `yomacs` are
    dictionary);
 2. Elisp package `yo.el`, which extends the Minkovskii's package with
    `yo-context` function for automatic yofication of some word
-   combinations (like _обо вс**ё**м_) and the _recursive edit_ option
-   in the dictionary-based replacement function `yo-spell`;
+   combinations (like _обо вс**ё**м_) and the [recursive edit]
+   option in the dictionary-based replacement function `yo-spell`;
 3. on-the-the-fly customization of the yofication hash table (the
-   working copy of dictionary) depending on the lexical scope of the
-   text being yoficated.
+   working copy of the dictionary) depending on the lexical scope of
+   the text being yoficated.
 
 This software is available on the terms of GNU General Public License
 [version 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) (Free
@@ -24,6 +24,7 @@ Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA).
 
 Copyright © 2019 by Sergio Pokrovskij
 
+[recursive edit]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Recursive-Edit.html
 --------
 
 # Ёфикация с помощью Эмакса
@@ -35,13 +36,15 @@ Copyright © 2019 by Sergio Pokrovskij
 2. скрипт на Лиспе дополнен функцией контекстной ёфикации `yo-context`
    для словосочетаний типа «обо вс**ё**м», «по н**ё**м», «вс**ё**,
    что» и т.д.; кроме того, в диалоговую функцию словарной замены
-   `yo-spell` добавлена возможность выхода в «рекурсивное
-   редактирование».
+   `yo-spell` добавлена возможность выхода в
+   «[рекурсивное редактирование][recursive edit]».
 3. Добавлены средства настройки словаря на особенности лексики
    ёфицируемого текста.
 
 Скрипт Е. Миньковского был рассчитан на XEmacs; ныне предлагаемый
-скрипт ориентирован на GNU Emacs.
+скрипт ориентирован на GNU Emacs (версии 24.3 или новее). Важное
+достоинство Эмакса состоит в том, что он снимает проблему
+использования различных кодировок русского текста.
 
 ## Установка
 Скачайте файлы `yo.el` и `yo.t` — скажем, в директорию `Ё` (можно
