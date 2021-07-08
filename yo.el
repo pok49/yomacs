@@ -8,7 +8,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Здесь надо указать откуда читается база ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar yo-database-file "~/git/yomacs/yo.t" ; <== FIXME !
+(defvar yo-database-file "~/Git/yomacs/yo.t" ; <== FIXME !
   "Where your yo.t database lives")
 
 (defvar yo-cutting-strings (list "\\-" "\"=" "\"~")
@@ -81,13 +81,14 @@ whithout yo to corresponding yo-form")
 
 ))))
 
-(defun yo-spell ()
+(defun yo-spell (keep-mode)
   "Словарная ёфикация с диалоговой заменой проблемных слов (типа {сел|сёл}).
 Пробел или английские y, Y подтверждают замену.
 DEL, Backspace, n или N замену отменяют.
 Кроме того, при ответе заглавной буквой (Y или N) входим
-в рекурсивное редактирование"
-  (interactive)
+в рекурсивное редактирование.
+Ответ '-' (Нигде) исключает данное слово из поиска до конца сеанса."
+  (interactive "P")
   (save-restriction
     (save-excursion
       (let (x
@@ -100,6 +101,7 @@ DEL, Backspace, n или N замену отменяют.
 	(when mark-active
 	  (narrow-to-region (region-beginning) (region-end))
 	  (goto-char (point-min)))
+        (unless keep-mode (fundamental-mode)) ; nxml-mode causes trouble
 	(while (re-search-forward
 		(concat "\\(?:\\w\\(?:\\w\\|" cutting "\\)*\\)?"
 			"\\(?:е\\|Е\\)"
@@ -117,7 +119,7 @@ DEL, Backspace, n или N замену отменяют.
                   (progn
                       (setq x (read-char-exclusive
                               (format
-                               "Меняем \"%s\" на \"%s\"? (Да={SPC|y}, Нет={DEL|n}) "
+                               "Меняем \"%s\" на \"%s\"? (Да={SPC|y}, Нет={DEL|n}, Нигде='-') "
                                current-e-word current-yo-word)))
                     (cond
                      ((or (= x ? ) (= x ?y) (= x ?Y))
@@ -127,6 +129,8 @@ DEL, Backspace, n или N замену отменяют.
                      ((or (= x ?\d ) (= x ?\b) (= x ?n) (= x ?N))
                       (isearch-dehighlight)
                       nil)
+                     ((= x ?-) ;; Remove from the yofication search
+                      (rm-yo-entry current-yo-word))
                      (t (ding) t)))) ;; Loop end
               (when (or (= x ?N) (= x ?Y)) ; Uppercase Y|N => recursive edit
                 (message "%s"
@@ -139,8 +143,7 @@ DEL, Backspace, n или N замену отменяют.
 ;; Вс\-е ее Все  ЛЕСС
 ;; (gethash "все" (cdr yo-hash))
 
-(defun yo-rm-entry (word) "Remove word from the may-be-yo hash"
-  (interactive "sИгнорировать слово: ")
+(defun rm-yo-entry (word) "Remove word from the may-be-yo hash"
   (if (string-match "\\([*+]\\)?[ \t]*\\(\\w+\\)$" word)
       (let ((e-word (replace-regexp-in-string "ё" "е" (match-string 2 word))))
         (if (string-match "^\\+" word)
@@ -148,6 +151,10 @@ DEL, Backspace, n или N замену отменяют.
         (remhash e-word (cdr yo-hash)))
     (unless (string-match "^#" word)
       (error "Wrong dict entry"))))
+
+(defun yo-rm-entry (word) "Interactive Remove word from the may-be-yo hash"
+  (interactive "sИгнорировать слово: ")
+  (rm-yo-entry word))
 
 (defun yo-rm-many (filePath) "Remove many words from the may-be-yo hash"
   (interactive "fFile: ")
@@ -162,4 +169,10 @@ DEL, Backspace, n или N замену отменяют.
          (lst (with-temp-buffer
                (insert-file-contents filePath)
                (split-string (buffer-string) "\n" t))))
-    (dolist (x lst) (yo-rm-entry x))))
+    (dolist (x lst) (rm-yo-entry x))))
+
+(defun yo-hash-revert () "Восстановить стандартные таблицы ёфикации"
+  (interactive)
+  (unload-feature 'yo-spell) (load-library "yo"))
+
+(provide 'yo-spell '(keep-mode))
